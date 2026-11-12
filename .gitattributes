@@ -11,6 +11,15 @@
 *.tsx text eol=lf
 *.js text eol=lf
 *.jsx text eol=lf
+*.css text eol=lf
+*.scss text eol=lf
+*.sass text eol=lf
+*.html text eol=lf
+*.md text eol=lf
+*.svg text eol=lf
+*.jsonc text eol=lf
+*.mjs text eol=lf
+*.cjs text eol=lf
 
 *.sh text eol=lf
 mvnw text eol=lf

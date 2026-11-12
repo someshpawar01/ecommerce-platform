@@ -3,8 +3,14 @@
 .idea/
 *.iml
 
-# VS Code
-.vscode/
+# VS Code - ignore personal settings by default
+.vscode/*
+**/.vscode/*
+
+# Allow shared frontend workspace configuration
+!frontend/.vscode/
+!frontend/.vscode/settings.json
+!frontend/.vscode/extensions.json
 
 # Java / Maven
 **/target/
