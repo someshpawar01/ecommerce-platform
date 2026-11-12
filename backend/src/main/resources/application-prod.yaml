@@ -1,0 +1,27 @@
+
+spring:
+  datasource:
+    url: ${ECOMMERCE_DB_URL}
+    username: ${ECOMMERCE_DB_USERNAME}
+    password: ${ECOMMERCE_DB_PASSWORD}
+
+  flyway:
+    user: ${ECOMMERCE_MIGRATION_USERNAME}
+    password: ${ECOMMERCE_MIGRATION_PASSWORD}
+
+  mail:
+    host: ${SMTP_HOST}
+    port: ${SMTP_PORT:587}
+    username: ${SMTP_USERNAME}
+    password: ${SMTP_PASSWORD}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+
+logging:
+  level:
+    com.ecommerce: INFO

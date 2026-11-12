@@ -1,3 +1,4 @@
+
 # IntelliJ IDEA
 .idea/
 *.iml
@@ -27,6 +28,9 @@
 **/application-local.yaml
 **/application-local.properties
 
+# Track the safe, password-free backend local configuration
+!backend/src/main/resources/application-local.yaml
+
 # Uploaded files
 storage/uploads/
 **/uploads/
@@ -38,3 +42,25 @@ Thumbs.db
 # Temporary files
 *.tmp
 *.bak
+
+# Additional IntelliJ IDEA files
+*.iws
+*.ipr
+
+# Eclipse / Spring Tool Suite
+.apt_generated/
+.classpath
+.factorypath
+.project
+.settings/
+.springBeans
+.sts4-cache/
+
+# NetBeans
+**/nbproject/private/
+**/nbbuild/
+**/nbdist/
+**/.nb-gradle/
+
+# Additional build output
+**/build/
