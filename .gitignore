@@ -1,0 +1,40 @@
+# IntelliJ IDEA
+.idea/
+*.iml
+
+# VS Code
+.vscode/
+
+# Java / Maven
+**/target/
+*.class
+*.log
+
+# Node.js / React
+**/node_modules/
+**/dist/
+**/coverage/
+*.tsbuildinfo
+
+# Environment variables and secrets
+.env
+.env.*
+!.env.example
+!.env.*.example
+
+# Local Spring configuration
+**/application-local.yml
+**/application-local.yaml
+**/application-local.properties
+
+# Uploaded files
+storage/uploads/
+**/uploads/
+
+# Operating system
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.bak
