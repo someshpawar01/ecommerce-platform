@@ -5,8 +5,21 @@ spring:
     username: ${ECOMMERCE_DB_USERNAME:ecommerce_app}
     password: ${ECOMMERCE_DB_PASSWORD}
     driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      connection-init-sql: SET time_zone = '+00:00'
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: UTC
 
   flyway:
+    enabled: true
+    locations: classpath:db/migration
+    validate-on-migrate: true
     user: ${ECOMMERCE_MIGRATION_USERNAME:ecommerce_migration}
     password: ${ECOMMERCE_MIGRATION_PASSWORD}
 
@@ -20,6 +33,37 @@ spring:
           starttls:
             enable: false
 
+app:
+  mail:
+    from: no-reply@ecommerce.local
+  verification:
+    token-expiry: 24h
+    base-url: http://localhost:5173
+    resend-cooldown: 60s
+    max-tokens-per-day: 5
+  password-reset:
+    token-expiry: 15m
+    base-url: http://localhost:5173/reset-password
+  security:
+    jwt:
+      issuer: ecommerce-platform
+      audience: ecommerce-api
+      access-token-minutes: 15
+      key-id: ecommerce-rs256-v1
+      private-key: file:${JWT_PRIVATE_KEY_PATH}
+      public-key: file:${JWT_PUBLIC_KEY_PATH}
+    cookie:
+      secure: false
+
 logging:
   level:
     com.ecommerce: DEBUG
+
+server:
+  port: ${SERVER_PORT:8081}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
