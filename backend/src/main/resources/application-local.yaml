@@ -64,6 +64,7 @@ app:
 logging:
   level:
     com.ecommerce: DEBUG
+    org.springframework.security: TRACE
 
 server:
   port: ${SERVER_PORT:8081}

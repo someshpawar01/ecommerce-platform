@@ -2,6 +2,8 @@ package com.ecommerce.common.exception;
 
 import com.ecommerce.common.constants.DatabaseErrorCodes;
 import com.ecommerce.common.constants.ErrorCodes;
+import com.ecommerce.customer.exception.CustomerProfileNotFoundException;
+import com.ecommerce.customer.exception.InvalidCustomerProfileException;
 import com.ecommerce.identity.constants.IdentityConstraintNames;
 import com.ecommerce.identity.exception.*;
 import com.ecommerce.identity.exception.passwordreset.InvalidPasswordResetTokenException;
@@ -23,6 +25,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -204,6 +207,42 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         problem.setProperty("code", "SERVICE_UNAVAILABLE");
 
         return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(problem);
+    }
+
+    @ExceptionHandler(CustomerProfileNotFoundException.class)
+    public ResponseEntity<ProblemDetail> handleCustomerProfileNotFound(
+        CustomerProfileNotFoundException exception, HttpServletRequest request) {
+
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, exception.getMessage());
+        problem.setInstance(URI.create(request.getRequestURI()));
+        problem.setProperty("code", "CUSTOMER_PROFILE_NOT_FOUND");
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(problem);
+    }
+
+    @ExceptionHandler(InvalidCustomerProfileException.class)
+    public ResponseEntity<ProblemDetail> handleInvalidCustomerProfile(
+        InvalidCustomerProfileException exception, HttpServletRequest request) {
+
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, exception.getMessage());
+        problem.setInstance(URI.create(request.getRequestURI()));
+        problem.setProperty("code", "INVALID_CUSTOMER_PROFILE");
+
+        return ResponseEntity.badRequest().body(problem);
+    }
+
+    @ExceptionHandler(ObjectOptimisticLockingFailureException.class)
+    public ResponseEntity<ProblemDetail> handleOptimisticLocking(
+        ObjectOptimisticLockingFailureException exception, HttpServletRequest request) {
+
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(
+            HttpStatus.CONFLICT,
+            "The profile was modified concurrently. Please reload and try again.");
+
+        problem.setInstance(URI.create(request.getRequestURI()));
+        problem.setProperty("code", "CONCURRENT_MODIFICATION");
+
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(problem);
     }
 
     @ExceptionHandler(Exception.class)
