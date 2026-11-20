@@ -11,6 +11,7 @@ import com.ecommerce.identity.entity.User;
 import com.ecommerce.identity.enums.UserStatusEnum;
 import com.ecommerce.identity.repository.EmailVerificationTokenRepository;
 import com.ecommerce.identity.repository.UserRepository;
+import com.ecommerce.identity.security.AccountRateLimitService;
 import com.ecommerce.identity.service.VerificationEmailSender;
 import com.ecommerce.identity.utils.SecureTokenGenerator;
 import java.time.LocalDateTime;
@@ -45,6 +46,9 @@ class ResendVerificationControllerIntegrationTest {
   @Autowired private JdbcTemplate jdbcTemplate;
 
   @MockitoBean private VerificationEmailSender verificationEmailSender;
+
+    @MockitoBean
+    private AccountRateLimitService accountRateLimitService;
 
   private LocalDateTime utcNow() {
     return LocalDateTime.now(ZoneOffset.UTC);

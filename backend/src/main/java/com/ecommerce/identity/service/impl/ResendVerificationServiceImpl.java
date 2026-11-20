@@ -6,6 +6,7 @@ import com.ecommerce.identity.entity.User;
 import com.ecommerce.identity.enums.UserStatusEnum;
 import com.ecommerce.identity.repository.EmailVerificationTokenRepository;
 import com.ecommerce.identity.repository.UserRepository;
+import com.ecommerce.identity.security.AccountRateLimitService;
 import com.ecommerce.identity.service.EmailVerificationTokenService;
 import com.ecommerce.identity.service.ResendVerificationService;
 import java.time.LocalDateTime;
@@ -25,11 +26,14 @@ public class ResendVerificationServiceImpl implements ResendVerificationService 
   private final EmailVerificationTokenRepository tokenRepository;
   private final EmailVerificationTokenService emailVerificationTokenService;
   private final EmailVerificationProperties verificationProperties;
+  private final AccountRateLimitService accountRateLimitService;
 
   @Override
   @Transactional
   public void resendVerification(String email) {
     String normalizedEmail = email.trim().toLowerCase(Locale.ROOT);
+
+    accountRateLimitService.checkResendVerification(normalizedEmail);
 
     // 1.aquire lock and fetch user for email
     Optional<User> optionalUser = userRepository.findByEmailNormalizedWithLock(normalizedEmail);

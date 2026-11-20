@@ -9,6 +9,7 @@ import com.ecommerce.identity.exception.passwordreset.InvalidPasswordResetTokenE
 import com.ecommerce.identity.repository.PasswordResetTokenRepository;
 import com.ecommerce.identity.repository.RefreshTokenSessionRepository;
 import com.ecommerce.identity.repository.UserRepository;
+import com.ecommerce.identity.security.AccountRateLimitService;
 import com.ecommerce.identity.service.PasswordResetService;
 import com.ecommerce.identity.utils.PasswordValidator;
 import com.ecommerce.identity.utils.SecureTokenGenerator;
@@ -37,12 +38,14 @@ public class PasswordResetServiceImpl implements PasswordResetService {
     private final PasswordResetProperties properties;
     private final ApplicationEventPublisher eventPublisher;
     private final EntityManager entityManager;
+    private final AccountRateLimitService accountRateLimitService;
 
     @Override
     @Transactional
     public void requestPasswordReset(String email) {
         String normalizedEmail = email.trim().toLowerCase(Locale.ROOT);
 
+        accountRateLimitService.checkForgotPassword(normalizedEmail);
         // Initial lookup does not acquire a pessimistic lock.
         User existingUser = userRepository.findByEmailNormalized(normalizedEmail).orElse(null);
 

@@ -10,6 +10,8 @@ import com.ecommerce.identity.repository.UserRepository;
 import com.ecommerce.identity.repository.UserRoleRepository;
 import com.ecommerce.identity.repository.UserStatusHistoryRepository;
 import java.util.UUID;
+
+import com.ecommerce.identity.security.AccountRateLimitService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -17,6 +19,7 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -35,6 +38,9 @@ class RegistrationControllerIntegrationTest {
   @Autowired private UserStatusHistoryRepository userStatusHistoryRepository;
 
   @Autowired private PasswordEncoder passwordEncoder;
+
+    @MockitoBean
+    private AccountRateLimitService accountRateLimitService;
 
   private String uniqueEmail() {
     return "test-" + UUID.randomUUID() + "@example.com";

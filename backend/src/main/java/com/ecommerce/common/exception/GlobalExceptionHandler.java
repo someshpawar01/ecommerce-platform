@@ -5,6 +5,8 @@ import com.ecommerce.common.constants.ErrorCodes;
 import com.ecommerce.identity.constants.IdentityConstraintNames;
 import com.ecommerce.identity.exception.*;
 import com.ecommerce.identity.exception.passwordreset.InvalidPasswordResetTokenException;
+import com.ecommerce.identity.exception.ratelimit.AccountRateLimitExceededException;
+import com.ecommerce.identity.exception.ratelimit.RateLimitUnavailableException;
 import jakarta.servlet.http.HttpServletRequest;
 
 import java.net.URI;
@@ -174,6 +176,34 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         problem.setInstance(URI.create(request.getRequestURI()));
 
         return ResponseEntity.badRequest().body(problem);
+    }
+
+    @ExceptionHandler(AccountRateLimitExceededException.class)
+    public ResponseEntity<ProblemDetail> handleRateLimitExceeded(
+        AccountRateLimitExceededException exception, HttpServletRequest request) {
+
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(
+            HttpStatus.TOO_MANY_REQUESTS,
+            "Too many requests. Please try again later.");
+
+        problem.setInstance(URI.create(request.getRequestURI()));
+        problem.setProperty("code", "RATE_LIMIT_EXCEEDED");
+
+        return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).body(problem);
+    }
+
+    @ExceptionHandler(RateLimitUnavailableException.class)
+    public ResponseEntity<ProblemDetail> handleRateLimitUnavailable(
+        RateLimitUnavailableException exception, HttpServletRequest request) {
+
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(
+            HttpStatus.SERVICE_UNAVAILABLE,
+            "The service is temporarily unavailable. Please try again later.");
+
+        problem.setInstance(URI.create(request.getRequestURI()));
+        problem.setProperty("code", "SERVICE_UNAVAILABLE");
+
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(problem);
     }
 
     @ExceptionHandler(Exception.class)

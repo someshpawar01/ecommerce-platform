@@ -10,6 +10,7 @@ import com.ecommerce.identity.entity.User;
 import com.ecommerce.identity.enums.UserStatusEnum;
 import com.ecommerce.identity.repository.EmailVerificationTokenRepository;
 import com.ecommerce.identity.repository.UserRepository;
+import com.ecommerce.identity.security.AccountRateLimitService;
 import com.ecommerce.identity.service.VerificationEmailSender;
 import com.ecommerce.identity.utils.SecureTokenGenerator;
 import jakarta.persistence.EntityManager;
@@ -48,6 +49,9 @@ class EmailVerificationControllerIntegrationTest {
   @MockitoBean private VerificationEmailSender verificationEmailSender;
 
   @Autowired private JdbcTemplate jdbcTemplate;
+
+    @MockitoBean
+    private AccountRateLimitService accountRateLimitService;
 
   private User createUser() {
     String email = "verify-" + UUID.randomUUID() + "@example.com";

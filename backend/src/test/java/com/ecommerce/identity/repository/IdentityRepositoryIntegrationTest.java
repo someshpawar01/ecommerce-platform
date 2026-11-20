@@ -10,146 +10,158 @@ import com.ecommerce.identity.entity.User;
 import com.ecommerce.identity.entity.UserRole;
 import com.ecommerce.identity.entity.UserRoleId;
 import com.ecommerce.identity.enums.UserStatusEnum;
+import com.ecommerce.identity.security.AccountRateLimitService;
 import jakarta.persistence.EntityManager;
+
 import java.util.UUID;
+
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 @DataJpaTest
 @ActiveProfiles("test")
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 class IdentityRepositoryIntegrationTest {
 
-  @Autowired private UserRepository userRepository;
+    @Autowired
+    private UserRepository userRepository;
 
-  @Autowired private RoleRepository roleRepository;
+    @Autowired
+    private RoleRepository roleRepository;
 
-  @Autowired private UserRoleRepository userRoleRepository;
+    @Autowired
+    private UserRoleRepository userRoleRepository;
 
-  @Autowired private CustomerProfileRepository customerProfileRepository;
+    @Autowired
+    private CustomerProfileRepository customerProfileRepository;
 
-  @Autowired private EntityManager entityManager;
+    @Autowired
+    private EntityManager entityManager;
 
-  private String uniqueEmail() {
-    return "test-" + UUID.randomUUID() + "@example.com";
-  }
+    @MockitoBean
+    private AccountRateLimitService accountRateLimitService;
 
-  @Test
-  void shouldSaveAndRetrieveUser() {
+    private String uniqueEmail() {
+        return "test-" + UUID.randomUUID() + "@example.com";
+    }
 
-    String email = uniqueEmail();
+    @Test
+    void shouldSaveAndRetrieveUser() {
 
-    User user =
-        User.builder()
-            .email(email)
-            .emailNormalized(email)
-            .passwordHash("dummy-hash-for-persistence-test")
-            .build();
+        String email = uniqueEmail();
 
-    User savedUser = userRepository.saveAndFlush(user);
+        User user =
+            User.builder()
+                .email(email)
+                .emailNormalized(email)
+                .passwordHash("dummy-hash-for-persistence-test")
+                .build();
 
-    entityManager.clear();
+        User savedUser = userRepository.saveAndFlush(user);
 
-    User retrievedUser = userRepository.findByEmailNormalized(email).orElseThrow();
+        entityManager.clear();
 
-    assertThat(retrievedUser.getId()).isEqualTo(savedUser.getId());
+        User retrievedUser = userRepository.findByEmailNormalized(email).orElseThrow();
 
-    assertThat(retrievedUser.getEmail()).isEqualTo(email);
+        assertThat(retrievedUser.getId()).isEqualTo(savedUser.getId());
 
-    assertThat(retrievedUser.getStatus()).isEqualTo(UserStatusEnum.UNVERIFIED);
+        assertThat(retrievedUser.getEmail()).isEqualTo(email);
 
-    assertThat(retrievedUser.getCreatedAt()).isNotNull();
+        assertThat(retrievedUser.getStatus()).isEqualTo(UserStatusEnum.UNVERIFIED);
 
-    assertThat(retrievedUser.getUpdatedAt()).isNotNull();
-  }
+        assertThat(retrievedUser.getCreatedAt()).isNotNull();
 
-  @Test
-  void shouldSaveCustomerProfileWithSharedPrimaryKey() {
+        assertThat(retrievedUser.getUpdatedAt()).isNotNull();
+    }
 
-    String email = uniqueEmail();
+    @Test
+    void shouldSaveCustomerProfileWithSharedPrimaryKey() {
 
-    User user =
-        User.builder()
-            .email(email)
-            .emailNormalized(email)
-            .passwordHash("dummy-hash-for-persistence-test")
-            .build();
+        String email = uniqueEmail();
 
-    user = userRepository.saveAndFlush(user);
+        User user =
+            User.builder()
+                .email(email)
+                .emailNormalized(email)
+                .passwordHash("dummy-hash-for-persistence-test")
+                .build();
 
-    CustomerProfile profile =
-        CustomerProfile.builder().user(user).firstName("Shreya").lastName("Ray").build();
+        user = userRepository.saveAndFlush(user);
 
-    customerProfileRepository.saveAndFlush(profile);
+        CustomerProfile profile =
+            CustomerProfile.builder().user(user).firstName("Shreya").lastName("Ray").build();
 
-    entityManager.clear();
+        customerProfileRepository.saveAndFlush(profile);
 
-    CustomerProfile savedProfile = customerProfileRepository.findById(user.getId()).orElseThrow();
+        entityManager.clear();
 
-    assertThat(savedProfile.getUserId()).isEqualTo(user.getId());
+        CustomerProfile savedProfile = customerProfileRepository.findById(user.getId()).orElseThrow();
 
-    assertThat(savedProfile.getFirstName()).isEqualTo("Shreya");
+        assertThat(savedProfile.getUserId()).isEqualTo(user.getId());
 
-    assertThat(savedProfile.getUser().getId()).isEqualTo(user.getId());
-  }
+        assertThat(savedProfile.getFirstName()).isEqualTo("Shreya");
 
-  @Test
-  void shouldSaveUserRoleWithCompositePrimaryKey() {
+        assertThat(savedProfile.getUser().getId()).isEqualTo(user.getId());
+    }
 
-    String email = uniqueEmail();
+    @Test
+    void shouldSaveUserRoleWithCompositePrimaryKey() {
 
-    User user =
-        User.builder()
-            .email(email)
-            .emailNormalized(email)
-            .passwordHash("dummy-hash-for-persistence-test")
-            .build();
+        String email = uniqueEmail();
 
-    user = userRepository.saveAndFlush(user);
+        User user =
+            User.builder()
+                .email(email)
+                .emailNormalized(email)
+                .passwordHash("dummy-hash-for-persistence-test")
+                .build();
 
-    Role customerRole = roleRepository.findByCode("CUSTOMER").orElseThrow();
+        user = userRepository.saveAndFlush(user);
 
-    UserRole userRole = UserRole.builder().user(user).role(customerRole).build();
+        Role customerRole = roleRepository.findByCode("CUSTOMER").orElseThrow();
 
-    userRoleRepository.saveAndFlush(userRole);
+        UserRole userRole = UserRole.builder().user(user).role(customerRole).build();
 
-    entityManager.clear();
+        userRoleRepository.saveAndFlush(userRole);
 
-    UserRoleId id = new UserRoleId(user.getId(), customerRole.getId());
+        entityManager.clear();
 
-    UserRole savedUserRole = userRoleRepository.findById(id).orElseThrow();
+        UserRoleId id = new UserRoleId(user.getId(), customerRole.getId());
 
-    assertThat(savedUserRole.getUser().getId()).isEqualTo(user.getId());
+        UserRole savedUserRole = userRoleRepository.findById(id).orElseThrow();
 
-    assertThat(savedUserRole.getRole().getCode()).isEqualTo("CUSTOMER");
+        assertThat(savedUserRole.getUser().getId()).isEqualTo(user.getId());
 
-    assertThat(userRoleRepository.existsByUser_IdAndRole_Code(user.getId(), "CUSTOMER")).isTrue();
-  }
+        assertThat(savedUserRole.getRole().getCode()).isEqualTo("CUSTOMER");
 
-  @Test
-  void shouldRejectDuplicateNormalizedEmail() {
+        assertThat(userRoleRepository.existsByUser_IdAndRole_Code(user.getId(), "CUSTOMER")).isTrue();
+    }
 
-    String email = uniqueEmail();
+    @Test
+    void shouldRejectDuplicateNormalizedEmail() {
 
-    User firstUser =
-        User.builder().email(email).emailNormalized(email).passwordHash("hash-1").build();
+        String email = uniqueEmail();
 
-    userRepository.saveAndFlush(firstUser);
+        User firstUser =
+            User.builder().email(email).emailNormalized(email).passwordHash("hash-1").build();
 
-    entityManager.clear();
+        userRepository.saveAndFlush(firstUser);
 
-    User secondUser =
-        User.builder()
-            .email("Another-" + email)
-            .emailNormalized(email)
-            .passwordHash("hash-2")
-            .build();
+        entityManager.clear();
 
-    assertThrows(
-        DataIntegrityViolationException.class, () -> userRepository.saveAndFlush(secondUser));
-  }
+        User secondUser =
+            User.builder()
+                .email("Another-" + email)
+                .emailNormalized(email)
+                .passwordHash("hash-2")
+                .build();
+
+        assertThrows(
+            DataIntegrityViolationException.class, () -> userRepository.saveAndFlush(secondUser));
+    }
 }

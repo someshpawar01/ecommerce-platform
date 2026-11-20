@@ -54,3 +54,5 @@ app:
       public-key: file:${JWT_PUBLIC_KEY_PATH}
     cookie:
       secure: false
+  ratelimit:
+    identity-hmac-key: "test-only-rate-limit-key-not-for-production-123456"

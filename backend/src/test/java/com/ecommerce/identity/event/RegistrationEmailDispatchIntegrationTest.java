@@ -6,6 +6,7 @@ import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.ecommerce.identity.security.AccountRateLimitService;
 import com.ecommerce.identity.service.VerificationEmailSender;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
@@ -36,6 +37,9 @@ class RegistrationEmailDispatchIntegrationTest {
   @Autowired private JdbcTemplate jdbcTemplate;
 
   @MockitoBean private VerificationEmailSender verificationEmailSender;
+
+    @MockitoBean
+    private AccountRateLimitService accountRateLimitService;
 
   @Test
   void shouldSendVerificationEmailAfterSuccessfulRegistration() throws Exception {

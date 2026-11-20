@@ -4,6 +4,7 @@ import com.ecommerce.identity.constants.RoleCodes;
 import com.ecommerce.identity.entity.*;
 import com.ecommerce.identity.enums.UserStatusEnum;
 import com.ecommerce.identity.repository.*;
+import com.ecommerce.identity.security.AccountRateLimitService;
 import com.ecommerce.identity.service.PasswordResetEmailSender;
 import com.ecommerce.identity.utils.SecureTokenGenerator;
 import jakarta.persistence.EntityManager;
@@ -49,8 +50,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -94,11 +94,14 @@ class AuthControllerIntegrationTest {
     @MockitoBean
     private JavaMailSender javaMailSender;
 
+    @Autowired
+    private PasswordResetTokenRepository tokenRepository;
+
     @MockitoBean
     private PasswordResetEmailSender passwordResetEmailSender;
 
-    @Autowired
-    private PasswordResetTokenRepository tokenRepository;
+    @MockitoBean
+    private AccountRateLimitService accountRateLimitService;
 
     @Autowired
     private Clock clock;
@@ -835,9 +838,9 @@ class AuthControllerIntegrationTest {
         mockMvc.perform(get("/test/auth/customer-only")
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken))
             .andExpect(status().isForbidden())
+            .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
             .andExpect(jsonPath("$.status").value(403))
-            .andExpect(jsonPath("$.code").value("ACCESS_DENIED"))
-            .andExpect(jsonPath("$.title").value("Forbidden"));
+            .andExpect(jsonPath("$.code").value("ACCESS_DENIED"));
     }
 
     @Test
@@ -1209,5 +1212,59 @@ class AuthControllerIntegrationTest {
             .map(parts -> URLDecoder.decode(parts[1], StandardCharsets.UTF_8))
             .findFirst()
             .orElseThrow(() -> new AssertionError("Reset token is missing from the email link"));
+    }
+
+    @Test
+    void shouldReturnStandardizedErrorWhenJwtIsMissing() throws Exception {
+        mockMvc.perform(get("/api/v1/auth/me"))
+            .andExpect(status().isUnauthorized())
+            .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.status").value(401))
+            .andExpect(jsonPath("$.title").value("Unauthorized"))
+            .andExpect(jsonPath("$.code").value("UNAUTHORIZED"))
+            .andExpect(jsonPath("$.instance").value("/api/v1/auth/me"));
+    }
+
+    @Test
+    void shouldReturnStandardizedErrorForInvalidJwt() throws Exception {
+        mockMvc.perform(get("/api/v1/auth/me")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer invalid.jwt.token"))
+            .andExpect(status().isUnauthorized())
+            .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.status").value(401))
+            .andExpect(jsonPath("$.code").value("UNAUTHORIZED"));
+    }
+
+    @Test
+    void shouldReturnStandardizedErrorWhenCsrfIsMissing() throws Exception {
+        mockMvc.perform(post("/api/v1/auth/forgot-password")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                            {
+                                "email": "customer@example.com"
+                            }
+                            """))
+            .andExpect(status().isForbidden())
+            .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.status").value(403))
+            .andExpect(jsonPath("$.code").value("CSRF_VALIDATION_FAILED"));
+    }
+
+    @Test
+    void shouldReturnStandardizedErrorForInvalidCsrf() throws Exception {
+        Cookie csrfCookie = obtainCsrfCookie();
+
+        mockMvc.perform(post("/api/v1/auth/forgot-password")
+                .cookie(csrfCookie)
+                .header("X-XSRF-TOKEN", "incorrect-token")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                            {
+                                "email": "customer@example.com"
+                            }
+                            """))
+            .andExpect(status().isForbidden())
+            .andExpect(jsonPath("$.status").value(403))
+            .andExpect(jsonPath("$.code").value("CSRF_VALIDATION_FAILED"));
     }
 }

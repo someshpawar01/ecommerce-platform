@@ -1,9 +1,13 @@
 package com.ecommerce.identity.config;
 
+import com.ecommerce.common.ratelimit.RateLimitingFilter;
 import com.ecommerce.identity.security.JwtAuthenticationConverter;
 import java.util.List;
 
+import com.ecommerce.identity.security.RestAccessDeniedHandler;
 import com.ecommerce.identity.security.RestAuthenticationEntryPoint;
+import lombok.RequiredArgsConstructor;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -13,21 +17,27 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.annotation.web.configurers.CsrfConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.csrf.CsrfFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 @Configuration
 @EnableMethodSecurity
+@RequiredArgsConstructor
 public class SecurityConfig {
+
+    private final RestAuthenticationEntryPoint authenticationEntryPoint;
+    private final RestAccessDeniedHandler accessDeniedHandler;
+    private final RateLimitingFilter rateLimitingFilter;
 
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http,
-                                            JwtAuthenticationConverter jwtConverter,
-                                            RestAuthenticationEntryPoint authenticationEntryPoint)
+                                            JwtAuthenticationConverter jwtConverter)
         throws Exception {
 
         return http
+            .addFilterBefore(rateLimitingFilter, CsrfFilter.class)
             .csrf(CsrfConfigurer::spa)
             .cors(cors -> {})
             .httpBasic(AbstractHttpConfigurer::disable)
@@ -49,9 +59,11 @@ public class SecurityConfig {
                 .anyRequest().authenticated())
             .oauth2ResourceServer(oauth2 -> oauth2
                 .authenticationEntryPoint(authenticationEntryPoint)
+                .accessDeniedHandler(accessDeniedHandler)
                 .jwt(jwt -> jwt.jwtAuthenticationConverter(jwtConverter)))
             .exceptionHandling(exceptions -> exceptions
-            .authenticationEntryPoint(authenticationEntryPoint))
+                .authenticationEntryPoint(authenticationEntryPoint)
+                .accessDeniedHandler(accessDeniedHandler))
             .build();
     }
 
@@ -68,5 +80,12 @@ public class SecurityConfig {
         source.registerCorsConfiguration("/api/**", configuration);
 
         return source;
+    }
+
+    @Bean
+    FilterRegistrationBean<RateLimitingFilter> rateLimitingFilterRegistration(RateLimitingFilter filter){
+        FilterRegistrationBean<RateLimitingFilter> registration = new FilterRegistrationBean<>(filter);
+        registration.setEnabled(false);
+        return registration;
     }
 }

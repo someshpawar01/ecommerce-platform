@@ -36,6 +36,9 @@ class JwtTokenServiceIntegrationTest {
     @MockitoBean
     private VerificationEmailSender verificationEmailSender;
 
+    @MockitoBean
+    private AccountRateLimitService accountRateLimitService;
+
     @Test
     void shouldGenerateAndValidateAccessToken() {
         Long userId = 101L;

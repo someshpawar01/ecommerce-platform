@@ -8,6 +8,7 @@ import com.ecommerce.identity.enums.UserStatusEnum;
 import com.ecommerce.identity.exception.InvalidVerificationTokenException;
 import com.ecommerce.identity.repository.EmailVerificationTokenRepository;
 import com.ecommerce.identity.repository.UserRepository;
+import com.ecommerce.identity.security.AccountRateLimitService;
 import com.ecommerce.identity.utils.SecureTokenGenerator;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -40,6 +41,9 @@ class EmailVerificationConcurrencyIntegrationTest {
   @Autowired private JdbcTemplate jdbcTemplate;
 
   @MockitoBean private VerificationEmailSender verificationEmailSender;
+
+    @MockitoBean
+    private AccountRateLimitService accountRateLimitService;
 
   @Test
   void shouldAllowOnlyOneConcurrentVerification() throws Exception {
