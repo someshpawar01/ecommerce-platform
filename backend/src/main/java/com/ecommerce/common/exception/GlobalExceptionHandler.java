@@ -2,7 +2,9 @@ package com.ecommerce.common.exception;
 
 import com.ecommerce.common.constants.DatabaseErrorCodes;
 import com.ecommerce.common.constants.ErrorCodes;
+import com.ecommerce.customer.exception.CustomerAddressNotFoundException;
 import com.ecommerce.customer.exception.CustomerProfileNotFoundException;
+import com.ecommerce.customer.exception.InvalidCustomerAddressException;
 import com.ecommerce.customer.exception.InvalidCustomerProfileException;
 import com.ecommerce.identity.constants.IdentityConstraintNames;
 import com.ecommerce.identity.exception.*;
@@ -227,6 +229,28 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, exception.getMessage());
         problem.setInstance(URI.create(request.getRequestURI()));
         problem.setProperty("code", "INVALID_CUSTOMER_PROFILE");
+
+        return ResponseEntity.badRequest().body(problem);
+    }
+
+    @ExceptionHandler(CustomerAddressNotFoundException.class)
+    public ResponseEntity<ProblemDetail> handleCustomerAddressNotFound(
+        CustomerAddressNotFoundException exception, HttpServletRequest request) {
+
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, exception.getMessage());
+        problem.setInstance(URI.create(request.getRequestURI()));
+        problem.setProperty("code", "CUSTOMER_ADDRESS_NOT_FOUND");
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(problem);
+    }
+
+    @ExceptionHandler(InvalidCustomerAddressException.class)
+    public ResponseEntity<ProblemDetail> handleInvalidCustomerAddress(
+        InvalidCustomerAddressException exception, HttpServletRequest request) {
+
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, exception.getMessage());
+        problem.setInstance(URI.create(request.getRequestURI()));
+        problem.setProperty("code", "INVALID_CUSTOMER_ADDRESS");
 
         return ResponseEntity.badRequest().body(problem);
     }
