@@ -1,6 +1,7 @@
 package com.ecommerce.product.service.impl;
 
 import com.ecommerce.product.dto.request.CreateCategoryRequest;
+import com.ecommerce.product.dto.request.UpdateCategoryRequest;
 import com.ecommerce.product.dto.response.CategoryResponse;
 import com.ecommerce.product.entity.Category;
 import com.ecommerce.product.exception.CategoryNotFoundException;
@@ -110,5 +111,107 @@ public class CategoryManagementServiceImplTest {
         verify(categoryRepository, never()).save(any(Category.class));
     }
 
+    @Test
+    void shouldUpdateCategoryNameWithoutChangingSlug() {
+        Category category = Category.builder()
+            .id(5L)
+            .name("Mobiles")
+            .slug("mobiles")
+            .active(true)
+            .build();
+
+        when(categoryRepository.findById(5L)).thenReturn(Optional.of(category));
+
+        UpdateCategoryRequest request = new UpdateCategoryRequest("Mobile Phones", null, null);
+
+        CategoryResponse response = service.updateCategory(5L, request);
+
+        assertEquals("Mobile Phones", response.name());
+        assertEquals("mobiles", response.slug());
+
+        verify(categoryRepository, never()).save(any(Category.class));
+    }
+
+    @Test
+    void shouldRejectBlankCategoryName() {
+        Category category = Category.builder()
+            .id(5L)
+            .name("Mobiles")
+            .slug("mobiles")
+            .build();
+
+        when(categoryRepository.findById(5L)).thenReturn(Optional.of(category));
+
+        UpdateCategoryRequest request = new UpdateCategoryRequest("   ", null, null);
+
+        assertThrows(InvalidCategoryException.class, () -> service.updateCategory(5L, request));
+    }
+
+    @Test
+    void shouldUpdateDescriptionAndSortOrder() {
+        Category category = Category.builder()
+            .id(5L)
+            .name("Mobiles")
+            .slug("mobiles")
+            .description("Old description")
+            .sortOrder(1)
+            .build();
+
+        when(categoryRepository.findById(5L)).thenReturn(Optional.of(category));
+
+        UpdateCategoryRequest request = new UpdateCategoryRequest(null, "Mobile devices", 3);
+
+        CategoryResponse response = service.updateCategory(5L, request);
+
+        assertEquals("Mobile devices", response.description());
+        assertEquals(3, response.sortOrder());
+    }
+
+    @Test
+    void shouldDeactivateCategory() {
+        Category category = Category.builder()
+            .id(1L)
+            .name("Electronics")
+            .active(true)
+            .build();
+
+        when(categoryRepository.findById(1L)).thenReturn(Optional.of(category));
+
+        CategoryResponse response = service.setCategoryActive(1L, false);
+
+        assertFalse(response.active());
+        assertFalse(category.getActive());
+    }
+
+    @Test
+    void shouldReactivateCategory() {
+        Category category = Category.builder()
+            .id(1L)
+            .name("Electronics")
+            .active(false)
+            .build();
+
+        when(categoryRepository.findById(1L)).thenReturn(Optional.of(category));
+
+        CategoryResponse response = service.setCategoryActive(1L, true);
+
+        assertTrue(response.active());
+    }
+
+    @Test
+    void shouldNotModifyCategoryWhenStatusAlreadyMatches() {
+        Category category = Category.builder()
+            .id(1L)
+            .active(true)
+            .build();
+
+        when(categoryRepository.findById(1L)).thenReturn(Optional.of(category));
+
+        CategoryResponse response = service.setCategoryActive(1L, true);
+
+        assertTrue(response.active());
+
+        verify(categoryRepository, never()).save(any(Category.class));
+    }
 
 }

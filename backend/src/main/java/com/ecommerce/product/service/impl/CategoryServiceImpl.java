@@ -69,7 +69,8 @@ public class CategoryServiceImpl implements CategoryService {
             category.getName(),
             category.getSlug(),
             category.getDescription(),
-            category.getSortOrder()
+            category.getSortOrder(),
+            category.getActive()
         );
     }
 }

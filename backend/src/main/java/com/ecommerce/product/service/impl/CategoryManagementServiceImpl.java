@@ -1,6 +1,7 @@
 package com.ecommerce.product.service.impl;
 
 import com.ecommerce.product.dto.request.CreateCategoryRequest;
+import com.ecommerce.product.dto.request.UpdateCategoryRequest;
 import com.ecommerce.product.dto.response.CategoryResponse;
 import com.ecommerce.product.entity.Category;
 import com.ecommerce.product.exception.CategoryNotFoundException;
@@ -42,6 +43,58 @@ public class CategoryManagementServiceImpl implements CategoryManagementService 
             .build();
 
         return toResponse(categoryRepository.save(category));
+    }
+
+    @Override
+    @Transactional
+    public CategoryResponse updateCategory(Long categoryId, UpdateCategoryRequest request) {
+        Category category = categoryRepository.findById(categoryId)
+            .orElseThrow(CategoryNotFoundException::new);
+
+        if (request.name() != null) {
+            String name = requireNonBlank(request.name(), "Category name");
+
+            if (name.length() > 150) {
+                throw new InvalidCategoryException("Category name cannot exceed 150 characters");
+            }
+
+            category.setName(name);
+        }
+
+        if (request.description() != null) {
+            String description = request.description().trim();
+
+            if (description.length() > 1000) {
+                throw new InvalidCategoryException("Category description cannot exceed 1000 characters");
+            }
+
+            category.setDescription(description);
+        }
+
+        if (request.sortOrder() != null) {
+            if (request.sortOrder() < 0) {
+                throw new InvalidCategoryException("Sort order cannot be negative");
+            }
+
+            category.setSortOrder(request.sortOrder());
+        }
+
+        return toResponse(category);
+    }
+
+    @Override
+    @Transactional
+    public CategoryResponse setCategoryActive(Long categoryId, boolean active) {
+        Category category = categoryRepository.findById(categoryId)
+            .orElseThrow(CategoryNotFoundException::new);
+
+        if (Boolean.valueOf(active).equals(category.getActive())) {
+            return toResponse(category);
+        }
+
+        category.setActive(active);
+
+        return toResponse(category);
     }
 
     private String generateUniqueSlug(String name) {
@@ -97,7 +150,8 @@ public class CategoryManagementServiceImpl implements CategoryManagementService 
             category.getName(),
             category.getSlug(),
             category.getDescription(),
-            category.getSortOrder()
+            category.getSortOrder(),
+            category.getActive()
         );
     }
 }
