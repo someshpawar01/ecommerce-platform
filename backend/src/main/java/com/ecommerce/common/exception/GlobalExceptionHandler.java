@@ -13,6 +13,7 @@ import com.ecommerce.identity.exception.ratelimit.AccountRateLimitExceededExcept
 import com.ecommerce.identity.exception.ratelimit.RateLimitUnavailableException;
 import com.ecommerce.product.exception.CategoryNotFoundException;
 import com.ecommerce.product.exception.InvalidCategoryException;
+import com.ecommerce.product.exception.InvalidCategoryOrderException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;
@@ -270,6 +271,17 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, exception.getMessage());
         problem.setInstance(URI.create(request.getRequestURI()));
         problem.setProperty("code", "INVALID_CATEGORY");
+
+        return ResponseEntity.badRequest().body(problem);
+    }
+
+    @ExceptionHandler(InvalidCategoryOrderException.class)
+    public ResponseEntity<ProblemDetail> handleInvalidCategoryOrder(
+        InvalidCategoryException exception, HttpServletRequest request) {
+
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, exception.getMessage());
+        problem.setInstance(URI.create(request.getRequestURI()));
+        problem.setProperty("code", "INVALID_CATEGORY_ORDER");
 
         return ResponseEntity.badRequest().body(problem);
     }

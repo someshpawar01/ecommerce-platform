@@ -1,14 +1,14 @@
 package com.ecommerce.product.repository;
 
 import com.ecommerce.product.entity.Category;
-import java.util.List;
-import java.util.Optional;
-
 import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+
+import java.util.List;
+import java.util.Optional;
 
 public interface CategoryRepository extends JpaRepository<Category, Long> {
 
@@ -31,4 +31,10 @@ public interface CategoryRepository extends JpaRepository<Category, Long> {
     List<Category> findByParentIdAndActiveTrueOrderBySortOrderAscNameAscIdAsc(Long parentId);
 
     List<Category> findByActiveTrueOrderBySortOrderAscNameAsc();
+
+    @Query("SELECT c FROM Category c WHERE c.parent IS NULL ORDER BY c.sortOrder, c.name, c.id")
+    List<Category> findAllRootCategoriesForOrdering();
+
+    @Query("SELECT c FROM Category c WHERE c.parent.id = :parentId ORDER BY c.sortOrder, c.name, c.id")
+    List<Category> findAllChildrenForOrdering(@Param("parentId") Long parentId);
 }

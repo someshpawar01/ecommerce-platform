@@ -1,12 +1,12 @@
 package com.ecommerce.product.controller;
 
-import com.ecommerce.product.dto.request.CreateCategoryRequest;
-import com.ecommerce.product.dto.request.UpdateCategoryRequest;
-import com.ecommerce.product.dto.request.UpdateCategoryStatusRequest;
+import com.ecommerce.product.dto.request.*;
 import com.ecommerce.product.dto.response.CategoryResponse;
 import com.ecommerce.product.service.CategoryManagementService;
 import jakarta.validation.Valid;
 import java.net.URI;
+import java.util.List;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -45,5 +45,22 @@ public class CategoryManagementController {
         @PathVariable Long categoryId, @Valid @RequestBody UpdateCategoryStatusRequest request) {
 
         return ResponseEntity.ok(categoryManagementService.setCategoryActive(categoryId, request.active()));
+    }
+
+    //we are using put because we are replacing a relationship here.
+    @PutMapping("/{categoryId}/parent")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<CategoryResponse> changeCategoryParent(
+        @PathVariable Long categoryId, @Valid @RequestBody ChangeCategoryParentRequest request) {
+
+        return ResponseEntity.ok(categoryManagementService.changeParent(categoryId, request.parentId()));
+    }
+
+    @PutMapping("/order")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<List<CategoryResponse>> reorderCategories(
+        @Valid @RequestBody ReorderCategoriesRequest request) {
+
+        return ResponseEntity.ok(categoryManagementService.reorderCategories(request));
     }
 }
