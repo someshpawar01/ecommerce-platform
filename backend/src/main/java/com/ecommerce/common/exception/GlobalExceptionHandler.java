@@ -11,9 +11,7 @@ import com.ecommerce.identity.exception.*;
 import com.ecommerce.identity.exception.passwordreset.InvalidPasswordResetTokenException;
 import com.ecommerce.identity.exception.ratelimit.AccountRateLimitExceededException;
 import com.ecommerce.identity.exception.ratelimit.RateLimitUnavailableException;
-import com.ecommerce.product.exception.CategoryNotFoundException;
-import com.ecommerce.product.exception.InvalidCategoryException;
-import com.ecommerce.product.exception.InvalidCategoryOrderException;
+import com.ecommerce.product.exception.*;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;
@@ -282,6 +280,35 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, exception.getMessage());
         problem.setInstance(URI.create(request.getRequestURI()));
         problem.setProperty("code", "INVALID_CATEGORY_ORDER");
+
+        return ResponseEntity.badRequest().body(problem);
+    }
+
+    @ExceptionHandler(BrandNotFoundException.class)
+    public ResponseEntity<ProblemDetail> handleBrandNotFound(
+        BrandNotFoundException exception, HttpServletRequest request) {
+
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, exception.getMessage());
+        problem.setInstance(URI.create(request.getRequestURI()));
+        problem.setProperty("code", "BRAND_NOT_FOUND");
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(problem);
+    }
+
+    @ExceptionHandler(DuplicateBrandException.class)
+    public ResponseEntity<ProblemDetail> handleDuplicateBrand(
+        DuplicateBrandException ex, HttpServletRequest request) {
+
+        return problem(HttpStatus.CONFLICT, "DUPLICATE_BRAND", ex.getMessage(), request);
+    }
+
+    @ExceptionHandler(InvalidBrandException.class)
+    public ResponseEntity<ProblemDetail> handleInvalidBrand(
+        InvalidBrandException exception, HttpServletRequest request) {
+
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, exception.getMessage());
+        problem.setInstance(URI.create(request.getRequestURI()));
+        problem.setProperty("code", "INVALID_BRAND");
 
         return ResponseEntity.badRequest().body(problem);
     }

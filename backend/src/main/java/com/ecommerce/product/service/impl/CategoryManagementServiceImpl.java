@@ -12,7 +12,7 @@ import com.ecommerce.product.exception.InvalidCategoryOrderException;
 import com.ecommerce.product.repository.CategoryHierarchyLockRepository;
 import com.ecommerce.product.repository.CategoryRepository;
 import com.ecommerce.product.service.CategoryManagementService;
-import com.ecommerce.product.utils.CategorySlugGenerator;
+import com.ecommerce.product.utils.SlugGenerator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,7 +28,7 @@ public class CategoryManagementServiceImpl implements CategoryManagementService 
     private static final int MAX_SLUG_LENGTH = 180;
 
     private final CategoryRepository categoryRepository;
-    private final CategorySlugGenerator slugGenerator;
+    private final SlugGenerator slugGenerator;
     private final CategoryHierarchyLockRepository hierarchyLockRepository;
 
     @Override

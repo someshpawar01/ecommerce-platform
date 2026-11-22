@@ -5,7 +5,7 @@ import java.util.Locale;
 import org.springframework.stereotype.Component;
 
 @Component
-public class CategorySlugGenerator {
+public class SlugGenerator {
 
     public String generate(String name) {
         String normalized = Normalizer.normalize(name, Normalizer.Form.NFKD)

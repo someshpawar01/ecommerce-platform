@@ -12,7 +12,7 @@ import com.ecommerce.product.exception.InvalidCategoryHierarchyException;
 import com.ecommerce.product.exception.InvalidCategoryOrderException;
 import com.ecommerce.product.repository.CategoryHierarchyLockRepository;
 import com.ecommerce.product.repository.CategoryRepository;
-import com.ecommerce.product.utils.CategorySlugGenerator;
+import com.ecommerce.product.utils.SlugGenerator;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -36,7 +36,7 @@ public class CategoryManagementServiceImplTest {
     private CategoryHierarchyLockRepository hierarchyLockRepository;
 
     @Spy
-    private CategorySlugGenerator slugGenerator = new CategorySlugGenerator();
+    private SlugGenerator slugGenerator = new SlugGenerator();
 
     @InjectMocks
     private CategoryManagementServiceImpl service;

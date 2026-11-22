@@ -33,8 +33,7 @@ public class SecurityConfig {
 
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http,
-                                            JwtAuthenticationConverter jwtConverter)
-        throws Exception {
+                                            JwtAuthenticationConverter jwtConverter) {
 
         return http
             .addFilterBefore(rateLimitingFilter, CsrfFilter.class)
@@ -49,7 +48,9 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET,
                     "/api/v1/auth/csrf",
                     "/api/v1/categories",
-                    "/api/v1/categories/**").permitAll()
+                    "/api/v1/categories/**",
+                    "/api/v1/brands",
+                    "/api/v1/brands/**").permitAll()
                 .requestMatchers(HttpMethod.POST,
                     "/api/v1/auth/register",
                     "/api/v1/auth/verify-email",
