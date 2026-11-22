@@ -2,8 +2,6 @@ package com.ecommerce.identity.config;
 
 import com.ecommerce.common.ratelimit.RateLimitingFilter;
 import com.ecommerce.identity.security.JwtAuthenticationConverter;
-import java.util.List;
-
 import com.ecommerce.identity.security.RestAccessDeniedHandler;
 import com.ecommerce.identity.security.RestAuthenticationEntryPoint;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +20,8 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import java.util.List;
+
 @Configuration
 @EnableMethodSecurity
 @RequiredArgsConstructor
@@ -39,13 +39,17 @@ public class SecurityConfig {
         return http
             .addFilterBefore(rateLimitingFilter, CsrfFilter.class)
             .csrf(CsrfConfigurer::spa)
-            .cors(cors -> {})
+            .cors(cors -> {
+            })
             .httpBasic(AbstractHttpConfigurer::disable)
             .formLogin(AbstractHttpConfigurer::disable)
             .sessionManagement(session ->
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers(HttpMethod.GET, "/api/v1/auth/csrf").permitAll()
+                .requestMatchers(HttpMethod.GET,
+                    "/api/v1/auth/csrf",
+                    "/api/v1/categories",
+                    "/api/v1/categories/**").permitAll()
                 .requestMatchers(HttpMethod.POST,
                     "/api/v1/auth/register",
                     "/api/v1/auth/verify-email",
@@ -56,6 +60,7 @@ public class SecurityConfig {
                     "/api/v1/auth/forgot-password",
                     "/api/v1/auth/reset-password").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/v1/auth/logout-all").authenticated()
+                .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
                 .anyRequest().authenticated())
             .oauth2ResourceServer(oauth2 -> oauth2
                 .authenticationEntryPoint(authenticationEntryPoint)
@@ -83,7 +88,7 @@ public class SecurityConfig {
     }
 
     @Bean
-    FilterRegistrationBean<RateLimitingFilter> rateLimitingFilterRegistration(RateLimitingFilter filter){
+    FilterRegistrationBean<RateLimitingFilter> rateLimitingFilterRegistration(RateLimitingFilter filter) {
         FilterRegistrationBean<RateLimitingFilter> registration = new FilterRegistrationBean<>(filter);
         registration.setEnabled(false);
         return registration;

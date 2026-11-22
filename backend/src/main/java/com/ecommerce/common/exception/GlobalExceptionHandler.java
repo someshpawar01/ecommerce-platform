@@ -11,22 +11,14 @@ import com.ecommerce.identity.exception.*;
 import com.ecommerce.identity.exception.passwordreset.InvalidPasswordResetTokenException;
 import com.ecommerce.identity.exception.ratelimit.AccountRateLimitExceededException;
 import com.ecommerce.identity.exception.ratelimit.RateLimitUnavailableException;
+import com.ecommerce.product.exception.CategoryNotFoundException;
+import com.ecommerce.product.exception.InvalidCategoryException;
 import jakarta.servlet.http.HttpServletRequest;
-
-import java.net.URI;
-import java.sql.SQLException;
-import java.util.LinkedHashMap;
-import java.util.Map;
-
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
-import org.springframework.http.ProblemDetail;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.validation.FieldError;
@@ -35,6 +27,11 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
+
+import java.net.URI;
+import java.sql.SQLException;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 @Slf4j
 @RestControllerAdvice
@@ -251,6 +248,28 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, exception.getMessage());
         problem.setInstance(URI.create(request.getRequestURI()));
         problem.setProperty("code", "INVALID_CUSTOMER_ADDRESS");
+
+        return ResponseEntity.badRequest().body(problem);
+    }
+
+    @ExceptionHandler(CategoryNotFoundException.class)
+    public ResponseEntity<ProblemDetail> handleCategoryNotFound(
+        CategoryNotFoundException exception, HttpServletRequest request) {
+
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, exception.getMessage());
+        problem.setInstance(URI.create(request.getRequestURI()));
+        problem.setProperty("code", "CATEGORY_NOT_FOUND");
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(problem);
+    }
+
+    @ExceptionHandler(InvalidCategoryException.class)
+    public ResponseEntity<ProblemDetail> handleInvalidCategory(
+        InvalidCategoryException exception, HttpServletRequest request) {
+
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, exception.getMessage());
+        problem.setInstance(URI.create(request.getRequestURI()));
+        problem.setProperty("code", "INVALID_CATEGORY");
 
         return ResponseEntity.badRequest().body(problem);
     }
