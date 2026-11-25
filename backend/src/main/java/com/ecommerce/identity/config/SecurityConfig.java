@@ -50,7 +50,9 @@ public class SecurityConfig {
                     "/api/v1/categories",
                     "/api/v1/categories/**",
                     "/api/v1/brands",
-                    "/api/v1/brands/**").permitAll()
+                    "/api/v1/brands/**",
+                    "/api/v1/attributes",
+                    "/api/v1/attributes/**").permitAll()
                 .requestMatchers(HttpMethod.POST,
                     "/api/v1/auth/register",
                     "/api/v1/auth/verify-email",

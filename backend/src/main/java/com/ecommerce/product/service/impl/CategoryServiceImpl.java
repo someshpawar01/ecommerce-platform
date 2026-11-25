@@ -3,9 +3,12 @@ package com.ecommerce.product.service.impl;
 import com.ecommerce.product.dto.response.CategoryResponse;
 import com.ecommerce.product.entity.Category;
 import com.ecommerce.product.exception.CategoryNotFoundException;
+import com.ecommerce.product.policy.CategoryVisibilityPolicy;
 import com.ecommerce.product.repository.CategoryRepository;
 import com.ecommerce.product.service.CategoryService;
+
 import java.util.List;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,6 +18,8 @@ import org.springframework.transaction.annotation.Transactional;
 public class CategoryServiceImpl implements CategoryService {
 
     private final CategoryRepository categoryRepository;
+
+    private final CategoryVisibilityPolicy categoryVisibilityPolicy;
 
     @Override
     @Transactional(readOnly = true)
@@ -28,36 +33,30 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     @Transactional(readOnly = true)
     public CategoryResponse getCategoryBySlug(String slug) {
-        Category category = findVisibleCategory(slug);
+        Category category = categoryRepository.findBySlug(slug)
+            .orElseThrow(CategoryNotFoundException::new);
+
+        if (!categoryVisibilityPolicy.isVisible(category)) {
+            throw new CategoryNotFoundException();
+        }
+
         return toResponse(category);
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<CategoryResponse> getChildCategories(String slug) {
-        Category parent = findVisibleCategory(slug);
+        Category parent = categoryRepository.findBySlug(slug)
+            .orElseThrow(CategoryNotFoundException::new);
+
+        if (!categoryVisibilityPolicy.isVisible(parent)) {
+            throw new CategoryNotFoundException();
+        }
 
         return categoryRepository.findByParentIdAndActiveTrueOrderBySortOrderAscNameAscIdAsc(parent.getId())
             .stream()
             .map(this::toResponse)
             .toList();
-    }
-
-    private Category findVisibleCategory(String slug) {
-        Category category = categoryRepository.findBySlug(slug)
-            .orElseThrow(CategoryNotFoundException::new);
-
-        Category current = category;
-
-        while (current != null) {
-            if (!Boolean.TRUE.equals(current.getActive())) {
-                throw new CategoryNotFoundException();
-            }
-
-            current = current.getParent();
-        }
-
-        return category;
     }
 
     private CategoryResponse toResponse(Category category) {

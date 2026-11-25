@@ -313,6 +313,75 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return ResponseEntity.badRequest().body(problem);
     }
 
+    @ExceptionHandler(ProductNotFoundException.class)
+    public ResponseEntity<ProblemDetail> handleProductNotFound(
+        ProductNotFoundException exception, HttpServletRequest request) {
+
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, exception.getMessage());
+        problem.setInstance(URI.create(request.getRequestURI()));
+        problem.setProperty("code", "PRODUCT_NOT_FOUND");
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(problem);
+    }
+
+    @ExceptionHandler(InvalidProductException.class)
+    public ResponseEntity<ProblemDetail> handleInvalidProduct(
+        InvalidProductException exception, HttpServletRequest request) {
+
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, exception.getMessage());
+        problem.setInstance(URI.create(request.getRequestURI()));
+        problem.setProperty("code", "INVALID_PRODUCT");
+
+        return ResponseEntity.badRequest().body(problem);
+    }
+
+    @ExceptionHandler(InvalidProductCategoryException.class)
+    public ResponseEntity<ProblemDetail> handleInvalidProductCategory(
+        InvalidProductCategoryException exception, HttpServletRequest request) {
+
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, exception.getMessage());
+        problem.setInstance(URI.create(request.getRequestURI()));
+        problem.setProperty("code", "INVALID_PRODUCT_CATEGORY");
+
+        return ResponseEntity.badRequest().body(problem);
+    }
+
+    @ExceptionHandler(InvalidProductStateException.class)
+    public ResponseEntity<ProblemDetail> handleInvalidProductState(
+        InvalidProductStateException ex, HttpServletRequest request) {
+
+        return problem(HttpStatus.CONFLICT, "DUPLICATE_PRODUCT_STATE", ex.getMessage(), request);
+    }
+
+    @ExceptionHandler(ProductVariantNotFoundException.class)
+    public ResponseEntity<ProblemDetail> handleProductVariantNotFound(
+        ProductVariantNotFoundException exception, HttpServletRequest request) {
+
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, exception.getMessage());
+        problem.setInstance(URI.create(request.getRequestURI()));
+        problem.setProperty("code", "PRODUCT_VARIANT_NOT_FOUND");
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(problem);
+    }
+
+    @ExceptionHandler(InvalidProductVariantException.class)
+    public ResponseEntity<ProblemDetail> handleInvalidProductVariant(
+        InvalidProductVariantException exception, HttpServletRequest request) {
+
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, exception.getMessage());
+        problem.setInstance(URI.create(request.getRequestURI()));
+        problem.setProperty("code", "INVALID_PRODUCT_VARIANT");
+
+        return ResponseEntity.badRequest().body(problem);
+    }
+
+    @ExceptionHandler(DuplicateProductVariantException.class)
+    public ResponseEntity<ProblemDetail> handleDuplicateProductVariant(
+        DuplicateProductVariantException ex, HttpServletRequest request) {
+
+        return problem(HttpStatus.CONFLICT, "DUPLICATE_PRODUCT_VARIANT", ex.getMessage(), request);
+    }
+
     @ExceptionHandler(ObjectOptimisticLockingFailureException.class)
     public ResponseEntity<ProblemDetail> handleOptimisticLocking(
         ObjectOptimisticLockingFailureException exception, HttpServletRequest request) {

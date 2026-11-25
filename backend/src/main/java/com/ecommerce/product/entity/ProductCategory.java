@@ -9,6 +9,8 @@ import lombok.*;
 @Getter
 @Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Builder
+@AllArgsConstructor
 public class ProductCategory {
 
     @EmbeddedId
@@ -29,11 +31,4 @@ public class ProductCategory {
 
     @Column(name = "primary_product_id", insertable = false, updatable = false)
     private Long primaryProductId;
-
-    public ProductCategory(Product product, Category category, boolean primary) {
-        this.product = product;
-        this.category = category;
-        this.primary = primary;
-        this.id = new ProductCategoryId(product.getId(), category.getId());
-    }
 }

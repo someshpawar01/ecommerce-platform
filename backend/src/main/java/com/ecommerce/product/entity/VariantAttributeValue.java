@@ -9,6 +9,8 @@ import lombok.*;
 @Getter
 @Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
+@Builder
 public class VariantAttributeValue {
 
     @EmbeddedId
@@ -35,12 +37,4 @@ public class VariantAttributeValue {
             insertable = false, updatable = false)
     })
     private AttributeValue attributeValue;
-
-    public VariantAttributeValue(ProductVariant variant, AttributeValue attributeValue) {
-        this.variant = variant;
-        this.attribute = attributeValue.getAttribute();
-        this.attributeValue = attributeValue;
-        this.attributeValueId = attributeValue.getId();
-        this.id = new VariantAttributeValueId(variant.getId(), attribute.getId());
-    }
 }

@@ -3,6 +3,7 @@ package com.ecommerce.product.service.impl;
 import com.ecommerce.product.dto.response.CategoryResponse;
 import com.ecommerce.product.entity.Category;
 import com.ecommerce.product.exception.CategoryNotFoundException;
+import com.ecommerce.product.policy.CategoryVisibilityPolicy;
 import com.ecommerce.product.repository.CategoryRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -22,6 +23,9 @@ public class CategoryServiceImplTest {
 
     @Mock
     private CategoryRepository categoryRepository;
+
+    @Mock
+    private CategoryVisibilityPolicy categoryVisibilityPolicy;
 
     @InjectMocks
     private CategoryServiceImpl service;
@@ -44,6 +48,7 @@ public class CategoryServiceImplTest {
             .sortOrder(2)
             .build();
 
+
         when(categoryRepository.findByParentIsNullAndActiveTrueOrderBySortOrderAscNameAscIdAsc())
             .thenReturn(List.of(electronics, fashion));
 
@@ -63,6 +68,7 @@ public class CategoryServiceImplTest {
             .active(true)
             .build();
 
+        when(categoryVisibilityPolicy.isVisible(electronics)).thenReturn(true);
         when(categoryRepository.findBySlug("electronics")).thenReturn(Optional.of(electronics));
 
         CategoryResponse response = service.getCategoryBySlug("electronics");
@@ -80,6 +86,7 @@ public class CategoryServiceImplTest {
             .active(false)
             .build();
 
+        when(categoryVisibilityPolicy.isVisible(category)).thenReturn(false);
         when(categoryRepository.findBySlug("electronics")).thenReturn(Optional.of(category));
 
         assertThrows(CategoryNotFoundException.class, () -> service.getCategoryBySlug("electronics"));
@@ -108,6 +115,7 @@ public class CategoryServiceImplTest {
             .parent(mobiles)
             .build();
 
+        when(categoryVisibilityPolicy.isVisible(smartphones)).thenReturn(false);
         when(categoryRepository.findBySlug("smartphones")).thenReturn(Optional.of(smartphones));
 
         assertThrows(CategoryNotFoundException.class, () -> service.getCategoryBySlug("smartphones"));
@@ -130,6 +138,7 @@ public class CategoryServiceImplTest {
             .active(true)
             .build();
 
+        when(categoryVisibilityPolicy.isVisible(electronics)).thenReturn(true);
         when(categoryRepository.findBySlug("electronics")).thenReturn(Optional.of(electronics));
         when(categoryRepository.findByParentIdAndActiveTrueOrderBySortOrderAscNameAscIdAsc(1L))
             .thenReturn(List.of(mobiles));
